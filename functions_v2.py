@@ -388,12 +388,26 @@ def expand_two_sides(obj, outward_expansion_size, target_size):
 
 
 
-def generate_features(ima, mask, ROI_size, ifHollow = True, outward_expansion_size = 3):
+def generate_features(ima, mask, ROI_size, ifHollow = True, outward_expansion_size = 3, positionRec = 'upper left'):
     '''
     calculate IBSI-defined radiomic features
     ima: 2d array, slice used to calculate features
     mask: 2d array, region of interest used to calculate features
     ROI_size: int, size of subimages
+    positionRec: got 2 choices.
+                 'upper left': record only the position of the upper left pixel of subimages, only applicable when the size
+                               of all the subimages is regular and fixed, eg. 8*8, 16*16 (record only the position of the
+                               upper left pixel because you've already known the width and length of the subimages)
+                 'all': record the positions of all pixels in subimages, applicable to all cases, but only recomended to do this
+                        when (1) the shapes of subimages are irregular; (2) when you want to have subsequent processing on the features,
+                        for exmaple, you may want to average the features from different subimages within a region, in this situation, what you
+                        want to record is the position of the region where the features are averaged, since you are using the averaged features to do the
+                        analysis. Feature set of subimage1: F1 = {f11, f12, f13, ..., (14, 15, 28, 29)}, feature set of subimage2:
+                        F2 = {f21, f22, f23, ..., (56, 57, 70)}, the array at the end would be the the position information for subimages.
+                        Averaged features F = {f1, f2, f3, ..., (24, 25, 28, 29, 56, 57, 78)} --> What you nned to do is do combine the
+                        position information array together, and don't forget to use np.unqie to get the unique elements of the array just
+                        in case there are overlaps.
+
     '''
 
     features = []
@@ -403,6 +417,11 @@ def generate_features(ima, mask, ROI_size, ifHollow = True, outward_expansion_si
     # for solid organ, no need to do expansion
     else:
         msk = mask
+
+    # create a pixel map to help markdown the position information of subimages (the region you used to calculate features)
+    pixel_total = ima.shape[0] * ima.shape[1]
+    pixel_arr = np.arange(pixel_total)
+    pixel_map = pixel_arr.reshape((ima.shape[0], ima.shape[1]))
 
     ROI_mask = np.ones((ROI_size, ROI_size))
     # generate multiple n*n ROIs on the expanded rectal wall using convolution
@@ -417,6 +436,7 @@ def generate_features(ima, mask, ROI_size, ifHollow = True, outward_expansion_si
             if np.sum(multiply) == ROI_size ** 2:
                 # texture features
                 ima_ROI = ima[i: i + kernel_h, j: j + kernel_w]
+                pixel_ROI = pixel_map[i: i + kernel_h, j: j + kernel_w]
                 # if (ima_ROI < 800).any() == False:  # remove ROIs that contaions gas using threshold 800
                 if (ima_ROI == ima[i,j]).all() == False: # if the all elements in the ima_ROI are the same, skip that ima_ROI
                     FOS_features = FOS_Quantised.get_FOSfeatures_quantised(ima_ROI)
@@ -426,9 +446,13 @@ def generate_features(ima, mask, ROI_size, ifHollow = True, outward_expansion_si
                     GLDZM_features = GLDZM.get_GLDZMfeatures(ima_ROI)
                     NGTDM_features = NGTDM.get_NGTDMfeatures(ima_ROI)
                     NGLDM_features = NGLDM.get_NGLDMfeatures(ima_ROI)
+                    if positionRec == 'upper left':
+                        position = (pixel_ROI[0][0],)
+                    elif positionRec == 'all':
+                        position = tuple(pixel_ROI.flatten())
 
                     features.append([FOS_features, GLCM_features, GLRLM_features, GLSZM_features, GLDZM_features,
-                                   NGTDM_features, NGLDM_features])
+                                   NGTDM_features, NGLDM_features, position])
 
     return features
 
