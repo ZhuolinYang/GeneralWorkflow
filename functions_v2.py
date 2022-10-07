@@ -61,7 +61,7 @@ def get_contour_sequence(contour_file, contour_name):
     this Dicom file using pydicom.read_file(), we
     can see the nested structure. The contour file
     may contain different sequences, e.g. various
-    contours from differnet experts.
+    contours from different experts.
 
     Input:
     contour_file (str) - the path of the contour file
@@ -73,7 +73,7 @@ def get_contour_sequence(contour_file, contour_name):
 
     Return:
     ROIContourSeq (int) - the index of the specified contour in
-                          the contour seqence
+                          the contour sequence
     '''
     target_contour = []
     contour_data = dicom.read_file(contour_file)
@@ -304,7 +304,7 @@ def contour_expansion(mask, width):
 
 def get_image_expandedContour_files(path, ROISequence, width):
     '''
-    Return a 3d array of images and corresponding 3d contours, masks and expanded cotours.
+    Return a 3d array of images and corresponding 3d contours, masks and expanded contours.
 
     Inputs:
     path (str) - path that contains all the Dicom files
@@ -362,10 +362,10 @@ def expand_two_sides(obj, outward_expansion_size, target_size):
          would explain this later), the outward_expansion_size would be 3, the target_size
          would be 8.
 
-    How it works: the funtion first expand the whole mask (obj) outwards with 3 pixels (outward_
+    How it works: the function first expand the whole mask (obj) outwards with 3 pixels (outward_
                   expandsion_size), then by calling the function 'contour_expansion', the
                   new expanded contour is generated, on this basis, the 8-pixel-wide organ wall
-                  will be extracted by exapnding this new expanded contour inwards with 8 pixels
+                  will be extracted by expanding this new expanded contour inwards with 8 pixels
                   (target_size).
                   In this way, you can also control the proportion fo expansion on sides.
                   For example, you can set outward_expansion_size = 2, target_size = 8, then in
@@ -398,14 +398,14 @@ def generate_features(ima, mask, ROI_size, ifHollow = True, outward_expansion_si
                  'upper left': record only the position of the upper left pixel of subimages, only applicable when the size
                                of all the subimages is regular and fixed, eg. 8*8, 16*16 (record only the position of the
                                upper left pixel because you've already known the width and length of the subimages)
-                 'all': record the positions of all pixels in subimages, applicable to all cases, but only recomended to do this
+                 'all': record the positions of all pixels in subimages, applicable to all cases, but only recommended to do this
                         when (1) the shapes of subimages are irregular; (2) when you want to have subsequent processing on the features,
-                        for exmaple, you may want to average the features from different subimages within a region, in this situation, what you
+                        for example, you may want to average the features from different subimages within a region, in this situation, what you
                         want to record is the position of the region where the features are averaged, since you are using the averaged features to do the
                         analysis. Feature set of subimage1: F1 = {f11, f12, f13, ..., (14, 15, 28, 29)}, feature set of subimage2:
                         F2 = {f21, f22, f23, ..., (56, 57, 70)}, the array at the end would be the the position information for subimages.
-                        Averaged features F = {f1, f2, f3, ..., (24, 25, 28, 29, 56, 57, 78)} --> What you nned to do is do combine the
-                        position information array together, and don't forget to use np.unqie to get the unique elements of the array just
+                        Averaged features F = {f1, f2, f3, ..., (24, 25, 28, 29, 56, 57, 78)} --> What you need to do is to combine the
+                        position information array together, and don't forget to use np.unique to get the unique elements of the array just
                         in case there are overlaps.
 
     '''
