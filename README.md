@@ -1,5 +1,5 @@
 # GeneralWorkflow  
-General workflow for raditherapy data processing
+General workflow for radiotherapy data processing
 
 Main function:   
 General_Workflow_v3.ipynb  
